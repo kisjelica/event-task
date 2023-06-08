@@ -1,0 +1,114 @@
+openapi: 3.0.1
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+paths:
+  /events/create:
+    post:
+      tags:
+      - event-controller
+      operationId: postEvent
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventRequest'
+        required: true
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/Event'
+  /events/list:
+    get:
+      tags:
+      - event-controller
+      operationId: getEvents
+      parameters:
+      - name: url
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            type: string
+      - name: date_greater_than
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: date_less_than
+        in: query
+        required: false
+        schema:
+          type: string
+          format: date-time
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          format: int32
+      responses:
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                $ref: '#/components/schemas/ResponseDTO'
+components:
+  schemas:
+    EventRequest:
+      type: object
+      properties:
+        source:
+          type: string
+        args:
+          $ref: '#/components/schemas/Json'
+        url:
+          type: string
+    Json:
+      type: object
+    Event:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+        source:
+          type: string
+        args:
+          $ref: '#/components/schemas/Json'
+        url:
+          type: string
+        recordedAt:
+          type: string
+          format: date-time
+    ResponseDTO:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+        self:
+          type: string
+        next:
+          type: string
+        prev:
+          type: string
+        last:
+          type: string
+        first:
+          type: string
