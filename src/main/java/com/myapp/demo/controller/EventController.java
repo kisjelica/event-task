@@ -3,12 +3,8 @@ package com.myapp.demo.controller;
 import com.myapp.demo.dto.ResponseDTO;
 import com.myapp.demo.model.Event;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-
-import org.springframework.http.ResponseEntity;
 
 import org.springframework.web.bind.annotation.*;
-import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import com.myapp.demo.request.EventRequest;
 import com.myapp.demo.service.EventService;
@@ -28,19 +24,19 @@ public class EventController {
         this.service = eventService;
     }
 
-    @PostMapping("/create")
+    @PostMapping
     public Mono<Event> postEvent(@RequestBody EventRequest request){
        return service.save(request);
     }
 
-    @GetMapping("/list")
+    @GetMapping
     public Mono<ResponseDTO> getEvents(@RequestParam(required = false) List<String> url,
-                                                       @RequestParam(required = false) Instant date_greater_than,
-                                                       @RequestParam(required = false) Instant date_less_than,
+                                                       @RequestParam(name="date_greater_than",required = false) Instant dateGreaterThan,
+                                                       @RequestParam(name="date_less_than",required = false) Instant dateLessThan,
                                                        @RequestParam(required = false) String cursor,
                                                        @RequestParam(required = false) Integer limit) {
-
-        return (service.getAll(url, date_greater_than, date_less_than, cursor, limit));
+        System.out.println(dateGreaterThan);
+        return (service.getAll(url, dateGreaterThan, dateLessThan, cursor, limit));
     }
 
 

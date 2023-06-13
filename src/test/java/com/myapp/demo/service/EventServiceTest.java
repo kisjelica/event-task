@@ -102,7 +102,7 @@ public class EventServiceTest {
         Mono<Event> savedEvent = repository.save(event);
         Long id = savedEvent.block().getId();
 
-        Flux<Event> retrievedEvents = repository.findAll(Collections.singletonList(randomString), Instant.MIN, Instant.MAX, id, 100);
+        Flux<Event> retrievedEvents = eventService.findAll(Collections.singletonList(randomString), Instant.MIN, Instant.MAX, id);
 
         Assertions.assertThat(retrievedEvents.collectList().block().size()).isEqualTo(1);
     }
@@ -116,8 +116,8 @@ public class EventServiceTest {
         event1.setRecordedAt(Instant.now());
 
 
-        Instant dateGreaterThan =Instant.now().minusMillis(1);
-        Instant dateLessThan = Instant.now().plusMillis(1);
+        Instant dateGreaterThan =Instant.now().minusSeconds(1);
+        Instant dateLessThan = Instant.now().plusSeconds(1);
 
         Event event2 = new Event();
         event2.setSource("source");
@@ -135,7 +135,7 @@ public class EventServiceTest {
         Long id2 = repository.save(event2).block().getId();
         Long id3 = repository.save(event3).block().getId();
 
-        List<Event> retrievedEvents = eventService.getAll(null,  dateGreaterThan, dateLessThan, "", 100).block().getItems();
+        List<Event> retrievedEvents = eventService.getAll(null,  dateGreaterThan.plusMillis(1), dateLessThan.minusMillis(1), "", 100).block().getItems();
 
 
 

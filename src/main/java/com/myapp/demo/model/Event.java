@@ -1,5 +1,6 @@
 package com.myapp.demo.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.myapp.demo.serializers.PgJsonObjectDeserializer;
@@ -20,6 +21,7 @@ import java.util.List;
 @Data
 public class Event {
     @Id
+    @JsonIgnore
     private Long id;
 
     private String source;

@@ -13,7 +13,12 @@ import java.util.List;
 
 public interface EventRepository extends R2dbcRepository<Event, Long> {
 
-
+/*
     @Query("SELECT * FROM event WHERE (length(:urls) = 0 OR url IN (:urls)) AND recorded_at > :date_greater_than AND recorded_at < :date_less_than AND id >= :id ORDER BY id ASC LIMIT :limit")
     Flux<Event> findAll(@Param("urls") List<String> urls, @Param("date_greater_than")Instant date_greater_than,@Param("date_less_than") Instant date_less_than, @Param("id")Long id, @Param("limit") Integer limit);
+*/
+    Flux<Event> findAllByUrlInAndRecordedAtBetweenAndIdGreaterThanEqual(List<String> urls, Instant dateGreaterThan, Instant dateLessThan, Long id);
+
+    Flux<Event> findAllByRecordedAtBetweenAndIdGreaterThanEqual(Instant dateGreaterThan, Instant dateLessThan, Long id);
+
 }

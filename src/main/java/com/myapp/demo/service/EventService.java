@@ -10,11 +10,10 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import com.myapp.demo.repository.EventRepository;
 import com.myapp.demo.request.EventRequest;
+import reactor.util.function.Tuple2;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -36,35 +35,45 @@ public class EventService {
         return repository.save(event);
     }
 
-    public Mono<ResponseDTO> getAll(List<String> url, Instant date_greater_than, Instant date_less_than, String cursor, Integer limit){
-        if(date_greater_than == null) date_greater_than = Instant.MIN;
-        if(date_less_than == null) date_less_than = Instant.MAX;
+    public Mono<ResponseDTO> getAll(List<String> url, Instant dateGreaterThan, Instant dateLessThan, String cursor, Integer limit){
+        if(dateGreaterThan == null) dateGreaterThan = Instant.MIN;
+        if(dateLessThan == null) dateLessThan = Instant.MAX;
         if(cursor == null) cursor = "";
         if(limit == null) limit = DEFAULT_LIMIT;
-        if(url == null) url = new ArrayList<>(Arrays.asList(""));
+       
         Long id = decodeCursor(cursor);
         if(id == null) id = 0l;
 
-        Flux<Event> events = repository.findAll(url, date_greater_than, date_less_than, id, limit);
+
+        Flux<Event> events = findAll(url, dateGreaterThan, dateLessThan, id).take(limit);
+
         Mono<Long> maxId = repository.count();
 
 
-        String finalCursor = cursor;
-
         Long finalId = id;
         Integer finalLimit = limit;
+        String finalCursor = cursor;
         return Mono.zip(maxId, events.collectList()).map(
-                res->{
-                    ResponseDTO responseDTO = new ResponseDTO();
-                    responseDTO.setItems(res.getT2());
-                    responseDTO.setSelf(finalCursor);
-                    responseDTO.setNext(encodeCursor(Math.min(res.getT1(), finalId + finalLimit)));
-                    responseDTO.setFirst(encodeCursor(0l));
-                    responseDTO.setPrev(encodeCursor(Math.max(0l, finalId - finalLimit)));
-                    responseDTO.setLast(encodeCursor(res.getT1() - finalLimit));
-                    return responseDTO;
-                }
+                res-> mapResponseDTO(finalCursor, finalId, finalLimit, res)
         );
+    }
+
+    public Flux<Event> findAll(List<String> url, Instant dateGreaterThan, Instant dateLessThan, Long id) {
+        if(url != null)
+            return repository.findAllByUrlInAndRecordedAtBetweenAndIdGreaterThanEqual(url, dateGreaterThan, dateLessThan, id);
+        else
+            return repository.findAllByRecordedAtBetweenAndIdGreaterThanEqual(dateGreaterThan, dateLessThan,id);
+    }
+
+    private ResponseDTO mapResponseDTO(String finalCursor, Long finalId, Integer finalLimit, Tuple2<Long, List<Event>> res) {
+        ResponseDTO responseDTO = new ResponseDTO();
+        responseDTO.setItems(res.getT2());
+        responseDTO.setSelf(finalCursor);
+        responseDTO.setNext(encodeCursor(Math.min(res.getT1(), finalId + finalLimit)));
+        responseDTO.setFirst(encodeCursor(0l));
+        responseDTO.setPrev(encodeCursor(Math.max(0l, finalId - finalLimit)));
+        responseDTO.setLast(encodeCursor(res.getT1() - finalLimit));
+        return responseDTO;
     }
 
     private Long decodeCursor(String cursor) {
